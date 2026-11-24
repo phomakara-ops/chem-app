@@ -46,7 +46,7 @@
   const APP_URL = 'https://script.google.com/macros/s/AKfycbzbXO9McjlU2gjHRPf9veT_4FanBQQ11s7S1gBvjQPgV87zUpCnZveyaaY8EPISIVWI/exec';
   // false: open the web app as its own page (works with Google sign-in).
   // true: show it inside this app, full screen. Needs access ANYONE_ANONYMOUS and XFrameOptionsMode.ALLOWALL in Apps Script.
-  const EMBED = false;
+  const EMBED = true;
 
   const $ = (id) => document.getElementById(id);
   const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -60,6 +60,17 @@
     f.src = APP_URL;
     f.title = 'ក្រុមបច្ចេកទេសគីមីវិទ្យា';
     f.allow = 'fullscreen; clipboard-write';
+    // Keeps the sign-in token for the app. Only a frame inside our own Apps Script page is answered.
+    addEventListener('message', (e) => {
+      if (!/^https:\/\/[a-z0-9-]+-script\.googleusercontent\.com$/.test(e.origin) || !e.data) return;
+      try {
+        if (e.data.chem === 'get') e.source.postMessage({ chem: 'token', token: localStorage.getItem('chem-session') || '' }, e.origin);
+        if (e.data.chem === 'set') {
+          if (e.data.token) localStorage.setItem('chem-session', String(e.data.token));
+          else localStorage.removeItem('chem-session');
+        }
+      } catch (err) { /* storage blocked */ }
+    });
     document.body.appendChild(f);
     $('home').hidden = true;
   }
