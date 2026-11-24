@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#2E52AD">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="គីមីវិទ្យា">
+<title>ក្រុមបច្ចេកទេសគីមីវិទ្យា</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; background: #2E52AD; color: #1C2340; font: 16px/1.7 'Kantumruy Pro', 'Khmer OS', 'Khmer Sangam MN', 'Noto Sans Khmer', system-ui, sans-serif; }
+  main { min-height: 100dvh; display: flex; padding: calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom)); }
+  .card { width: 100%; max-width: 420px; margin: auto; padding: 28px 22px; background: #fff; border-radius: 24px; text-align: center; }
+  .card img { width: 112px; height: 112px; }
+  h1 { margin: 8px 0 0; font-size: 22px; color: #2E52AD; }
+  p { margin: 4px 0 16px; color: #55607A; font-size: 15px; }
+  .btn { display: block; width: 100%; min-height: 50px; padding: 10px; margin-top: 10px; border: 1px solid #2E52AD; border-radius: 12px; background: #fff; color: #2E52AD; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+  .btn.primary { background: #2E52AD; color: #fff; }
+  .steps { text-align: left; margin-top: 18px; padding: 14px; border-radius: 14px; background: #F4F6FB; font-size: 15px; }
+  .steps ol { margin: 6px 0 0; padding-left: 22px; }
+  iframe { position: fixed; border: 0; background: #E9EDF6; top: env(safe-area-inset-top); left: env(safe-area-inset-left); width: calc(100% - env(safe-area-inset-left) - env(safe-area-inset-right)); height: calc(100% - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body>
+<main id="home">
+  <div class="card">
+    <img src="apple-touch-icon.png" alt="">
+    <h1>ក្រុមបច្ចេកទេសគីមីវិទ្យា</h1>
+    <p id="msg">វិទ្យាល័យព្រះស៊ីសុវត្ថិ · សាលារៀនជំនាន់ថ្មី</p>
+    <button class="btn primary" id="install" type="button" hidden>តម្លើង App</button>
+    <button class="btn" id="open" type="button">បើកកម្មវិធី</button>
+    <div class="steps" id="ios" hidden><b>តម្លើងលើ iPhone / iPad</b>
+      <ol><li>បើកទំព័រនេះក្នុង Safari</li><li>ចុចប៊ូតុង Share (ប្រអប់មានព្រួញឡើងលើ)</li><li>ជ្រើស «Add to Home Screen»</li><li>ចុច «Add»</li></ol></div>
+    <div class="steps" id="droid" hidden><b>តម្លើងលើ Android</b>
+      <ol><li>បើកទំព័រនេះក្នុង Chrome</li><li>ចុចម៉ឺនុយ ⋮</li><li>ជ្រើស «Install app» ឬ «Add to Home screen»</li></ol></div>
+  </div>
+</main>
+<script>
+  // Address of the Apps Script web app.
+  const APP_URL = 'https://script.google.com/macros/s/AKfycbzbXO9McjlU2gjHRPf9veT_4FanBQQ11s7S1gBvjQPgV87zUpCnZveyaaY8EPISIVWI/exec';
+  // false: open the web app as its own page (works with Google sign-in).
+  // true: show it inside this app, full screen. Needs access ANYONE_ANONYMOUS and XFrameOptionsMode.ALLOWALL in Apps Script.
+  const EMBED = false;
+
+  const $ = (id) => document.getElementById(id);
+  const installed = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  function openApp() {
+    if (!navigator.onLine) { $('msg').textContent = 'មិនមានអ៊ីនធឺណិត។ សូមភ្ជាប់ ហើយចុច «បើកកម្មវិធី» ម្ដងទៀត។'; return; }
+    if (!EMBED) { location.href = APP_URL; return; }
+    if (document.querySelector('iframe')) return;
+    const f = document.createElement('iframe');
+    f.src = APP_URL;
+    f.title = 'ក្រុមបច្ចេកទេសគីមីវិទ្យា';
+    f.allow = 'fullscreen; clipboard-write';
+    document.body.appendChild(f);
+    $('home').hidden = true;
+  }
+  $('open').addEventListener('click', openApp);
+  addEventListener('online', () => { if (installed) openApp(); });
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+  if (installed) openApp();
+  else {
+    $('ios').hidden = !ios;
+    $('droid').hidden = ios;
+    let ask = null;
+    addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); ask = e; $('install').hidden = false; $('droid').hidden = true; });
+    $('install').addEventListener('click', () => { if (ask) { ask.prompt(); ask = null; $('install').hidden = true; } });
+    addEventListener('appinstalled', () => { $('install').hidden = true; $('msg').textContent = 'បានតម្លើងរួច ✓ សូមបើកពីអេក្រង់ទូរសព្ទ។'; });
+  }
+</script>
+</body>
+</html>
