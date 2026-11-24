@@ -53,7 +53,7 @@
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
   function openApp() {
-    if (!navigator.onLine) { $('msg').textContent = 'មិនមានអ៊ីនធឺណិត។ សូមភ្ជាប់ ហើយចុច «បើកកម្មវិធី» ម្ដងទៀត។'; return; }
+    if (!navigator.onLine) { $('home').hidden = false; $('msg').textContent = 'មិនមានអ៊ីនធឺណិត។ សូមភ្ជាប់ ហើយចុច «បើកកម្មវិធី» ម្ដងទៀត។'; return; }
     if (!EMBED) { location.href = APP_URL; return; }
     if (document.querySelector('iframe')) return;
     const f = document.createElement('iframe');
@@ -67,7 +67,12 @@
   addEventListener('online', () => { if (installed) openApp(); });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-  if (installed) openApp();
+  if (installed) {
+    // Straight into the app: the card stays hidden, and returns only if the app page is closed or cannot open.
+    $('home').hidden = true;
+    if (!EMBED) setTimeout(() => { $('home').hidden = false; }, 10000);
+    openApp();
+  }
   else {
     $('ios').hidden = !ios;
     $('droid').hidden = ios;
