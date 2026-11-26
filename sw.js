@@ -1,5 +1,5 @@
 // Keeps only this small shell offline. The app and its data always come from Google.
-const CACHE = 'chem-shell-v1';
+const CACHE = 'chem-shell-v2';
 const FILES = ['./', './manifest.webmanifest', './icon-192.png', './apple-touch-icon.png'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
